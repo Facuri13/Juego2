@@ -90,9 +90,7 @@ public class Jugador1 {
 			velocidadSalto = 11;
 		}
 	}
-	public void pocisionInicial() {
-		
-	}
+
 	public void vueltaInicio(Jugador1 jugador1,Entorno e) {
 		if(jugador1.y>=600) {
 			x=400;

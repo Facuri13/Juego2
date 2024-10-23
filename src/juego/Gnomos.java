@@ -13,18 +13,25 @@ public class Gnomos {
 	double escala;
 	boolean tocapiso;
 	int gravedad;
+	boolean sefuedeisla;
+	int direccion;
+	double velocidad;
+	Random random= new Random();
 	
 	
-	public Gnomos(double x, double y, double escala) {
-		
+	public Gnomos(double x, double y, double escala, double velocidad) {
+		Random rand= new Random();
+		direccion = rand.nextInt(2);
 		this.x = x;
 		this.y = y;
 		this.escala = escala;
+		this.velocidad=velocidad;
 		imagen = entorno.Herramientas.cargarImagen("assets/gnomo.png");
 		ancho = imagen.getWidth(null)*escala;
 		alto = imagen.getHeight(null)*escala;
 		gravedad = 4;
 		tocapiso = false;
+		sefuedeisla= false;
 	}
 	public double bordeArriba() {
 		return y-(alto/2);
@@ -44,8 +51,21 @@ public class Gnomos {
 
 	public void dibujar(Entorno e) {
 			e.dibujarImagen(this.imagen, this.x, this.y, 0, this.escala);
+			
 	}
+	public void moverHorizontal(double horizontal, Entorno e) {
+		if(direccion%2==0) {
+			x=x+horizontal*velocidad*1.2;		
+		}
+		if (direccion%2!=0) {
+			x=x+horizontal*velocidad*-1.2;
+		}
+	}
+		
+	
 	public void moverVer() {
-		y += gravedad;
+		if (!tocapiso) {
+			y = y + gravedad;
+		}
 	}
 }

@@ -30,9 +30,9 @@ public class Juego extends InterfaceJuego
 		// Inicializa el objeto entorno
 		this.entorno = new Entorno(this, "El Jardín de los Gnomos", 800, 600);
 		this.jugador1 = new Jugador1(400, 40, 2.8);
-		this.tortuga= new Tortuga(200, 100, 3);
+		this.tortuga= new Tortuga(180, 100, 3);
 		this.islas = new Isla[15];
-		this.gnomos = new Gnomos[4];
+		this.gnomos = new Gnomos[5];
 		this.fuegos = new ArrayList<>();
 		this.casa = new Casagnomos(408, 55, 3);
 		entorno.colorFondo(colorCustom);
@@ -58,6 +58,10 @@ public class Juego extends InterfaceJuego
 	
 		this.entorno.iniciar();
 	}
+	public boolean colisionPisoGnomo(Gnomos gnomo, Isla isla) {
+	    return Math.abs(gnomo.bordeAbajo() - isla.bordeArriba()) < 2 && 
+	           (gnomo.bordeDer() > isla.bordeIzq() && gnomo.bordeIzq() < isla.bordeDer());
+	    }
 	
 	
 	public boolean colisionPiso(Jugador1 jugador1, Isla isla) {
@@ -91,13 +95,38 @@ public class Juego extends InterfaceJuego
 	}
 	
 	public void crearGnomos() {
-		for (int i = 0; i < gnomos.length; i++) {
+		for (int i = 1; i < gnomos.length; i++) {
             if (gnomos[i] == null) {
-                gnomos[i] = new Gnomos(408, 55, 2.5);
+                gnomos[i] = new Gnomos(408, 55, 2.5,(0.5*i));
                 break;
             }
         }
     }
+	public void moverGnomos() {
+	    for (Gnomos gnomo : gnomos) {
+	        if (gnomo != null) {
+	            boolean estaSobreIsla = false;
+	            for (Isla isla : islas) {
+	                if (colisionPisoGnomo(gnomo, isla)) {
+	                    gnomo.tocapiso = true;
+	                    estaSobreIsla = true;
+	                    break;
+	                }
+	            }
+	            if (!estaSobreIsla) {
+	                gnomo.tocapiso = false;  // Si no está sobre ninguna isla, cae
+	            }
+
+	            // Movimiento horizontal solo si está tocando el piso (una isla)
+	            if (gnomo.tocapiso) {
+	                gnomo.moverHorizontal(0.3, entorno);
+	            }
+	            // Movimiento vertical (caída) si no está tocando el piso
+	            gnomo.moverVer();
+	        }
+	    }
+	}
+	
 
 	/**
 	 * Durante el juego, el método tick() será ejecutado en cada instante y 
@@ -144,6 +173,25 @@ public class Juego extends InterfaceJuego
 		        jugador1.tocapiso = false;
 		    }
 		}
+	    
+	    // Dibujar gnomos
+	    for (Gnomos gnomo : gnomos) {
+	        if (gnomo != null) {
+	            gnomo.dibujar(entorno);
+	        }
+	    }
+	    moverGnomos();
+	    
+	    // Dibujar gnomos
+	    for (Gnomos gnomo : gnomos) {
+	        if (gnomo != null) {
+	            gnomo.dibujar(entorno);
+	        }
+	    }
+		
+		 
+		 
+		
 		
 		for (Isla isla: islas) {
 			int hola=1;
@@ -196,11 +244,7 @@ public class Juego extends InterfaceJuego
 			Fuego fuego = new Fuego(jugador1.x, jugador1.y, 1, jugador1.getDireccion());
 			fuegos.add(fuego);
         }
-		   for (Gnomos gnomo : gnomos) {
-		        if (gnomo != null) {
-		            gnomo.dibujar(entorno);
-		        }
-		    }
+		 
 }
 		
 	@SuppressWarnings("unused")
