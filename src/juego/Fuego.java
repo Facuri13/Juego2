@@ -14,6 +14,7 @@ public class Fuego {
 	double escala;
 	double velocidad;
 	int direccion;
+	boolean murio;
 	
 	public Fuego(double x, double y, double escala, int direccion) {
 		this.x = x;
@@ -25,6 +26,7 @@ public class Fuego {
 		imagenizq = entorno.Herramientas.cargarImagen("assets/fuegoizq.png");
 		ancho = imagen.getWidth(null)*escala;
 		alto = imagen.getHeight(null)*escala;
+		murio=false;
 	}
 	public double bordeArriba() {
 		return y-(alto/2);

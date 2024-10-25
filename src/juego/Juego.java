@@ -11,49 +11,45 @@ public class Juego extends InterfaceJuego {
 	// El objeto Entorno que controla el tiempo y otros
 	private Entorno entorno;
 	Jugador1 jugador1;
-
-	Isla[] islas;
+	List<Isla> islas;
 	List<Fuego> fuegos;
-	Gnomos[] gnomos;
+	List<Gnomos> gnomos;
 	Color colorCustom = new Color(0, 147, 255);
 	Casagnomos casa;
-	Tortuga tortugas[];
+	List<Tortuga> tortugas;
 	Random aleatorio;
+	int ultimognomo = 0;
+	int indiceGnomo = 0;
 	int gnomoPer = 0;
 	int gnomoSalv = 0;
 	boolean ganaste = false;
 	boolean perdiste = false;
+	boolean skillissue = false;
 
 	// Variables y métodos propios de cada grupo
 	// ...
-
 	Juego() {
 		// Inicializa el objeto entorno
 		this.entorno = new Entorno(this, "El Jardín de los Gnomos", 800, 600);
 		this.jugador1 = new Jugador1(430, 450, 2.8);
-
-		this.islas = new Isla[15];
-		this.gnomos = new Gnomos[5];
+		// this.tortuga= new Tortuga(180, 100, 3);
+		this.islas = new ArrayList<>();
+		this.gnomos = new ArrayList<>();
 		this.fuegos = new ArrayList<>();
 		this.casa = new Casagnomos(408, 55, 3);
 		entorno.colorFondo(colorCustom);
 		this.aleatorio = new Random();
-		this.tortugas = new Tortuga[3];
-
+		this.tortugas = new ArrayList<>();
 		// Inicializar lo que haga falta para el juego
 		// ...
 		int k = 0;
 		for (int i = 1; i <= 5; i++) {
 			for (int j = 1; j <= i; j++) {
-				this.islas[k] = new Isla((j * entorno.ancho() / (i + 1) - 1 + (10 * j)), 100 * i, 3.5);
+				this.islas.add(new Isla((j * entorno.ancho() / (i + 1) - 1 + (10 * j)), 100 * i, 3.5));
 				k = k + 1;
-
 			}
-
 		}
-
 		// Inicia el juego!
-
 		this.entorno.iniciar();
 	}
 
@@ -83,28 +79,34 @@ public class Juego extends InterfaceJuego {
 	}
 
 	public boolean tocaisla(Tortuga tortuga, Isla i) {
-		return Math.abs(tortuga.bordeAbajo() - i.bordeArriba()) < 1;
+		return Math.abs(tortuga.bordeAbajo() - i.bordeArriba()) < 5
+				&& (tortuga.bordeDer() > i.bordeIzq() && tortuga.bordeIzq() < i.bordeDer());
 	}
 
 	public boolean tocaislaBorde(Tortuga tortuga, Isla i) {
 		return (tortuga.bordeIzq() >= i.bordeIzq() && tortuga.bordeDer() <= i.bordeDer());
 	}
 
-	public void creartortugas() {
-		for (int i = 1; i < tortugas.length; i++) {
-
-			tortugas[0] = new Tortuga(200, 100, 3);
-			tortugas[1] = new Tortuga(274, 100, 3);
-			tortugas[2] = new Tortuga(713, 100, 3);
+	public void crearGnomos() {
+		if (gnomos.size() < 4) {
+			double velocidad = (Math.random() * 3);
+			if (this.entorno.tiempo() % 300 == 0) {
+				gnomos.add(new Gnomos(408, 55, 2.5, 0.75 * velocidad));
+			}
 		}
-
 	}
 
-	public void crearGnomos() {
-		for (int i = 1; i < gnomos.length; i++) {
-			if (gnomos[i] == null) {
-				gnomos[i] = new Gnomos(408, 55, 2.5, 0.75);
-
+	public void creartortugas() {
+		if (tortugas.size() < 3) {
+			int random = (int) (Math.random() * 3);
+			if (random == 0) {
+				tortugas.add(new Tortuga(134, 55, 2.5));
+			}
+			if (random == 1) {
+				tortugas.add(new Tortuga(182, 55, 2.5));
+			}
+			if (random == 2) {
+				tortugas.add(new Tortuga(550, 55, 2.5));
 			}
 		}
 	}
@@ -114,8 +116,7 @@ public class Juego extends InterfaceJuego {
 			if (gnomo != null) {
 				boolean estaSobreIsla = false;
 				for (Isla isla : islas) {
-					if (colisionPisoGnomo(gnomo, isla)) { // El triplehijueputa del gnomo solo se mueve cuando toca una
-															// isla
+					if (colisionPisoGnomo(gnomo, isla)) {
 						gnomo.tocapiso = true;
 						estaSobreIsla = true;
 						break;
@@ -123,7 +124,6 @@ public class Juego extends InterfaceJuego {
 				}
 				if (!estaSobreIsla) {
 					gnomo.tocapiso = false;
-
 				}
 				gnomo.moverHorizontal();
 				gnomo.moverVer();
@@ -134,58 +134,95 @@ public class Juego extends InterfaceJuego {
 
 	public void movertortugas() {
 		for (Tortuga t : tortugas) {
-			if (t != null) {
-				boolean estaSobreIsla = false;
-				for (Isla isla : islas) {
-					if (tocaisla(t, isla)) { // El triplehijueputa del gnomo solo se mueve cuando toca una
-															// isla
-						t.tocapiso = true;
-						estaSobreIsla = true;
-						break;
-					}
+			for (Isla i : islas) {
+				if (tocaisla(t, i)) {
+					t.tocapiso = true;
+					break;
 				}
-				if (!estaSobreIsla) {
-					t.tocapiso = false;
-
-				}
-				t.moverInicial();
-				t.moverVer();
-				t.cambiarDireccion();
 			}
 		}
 	}
+
 	// check de colision gnomo-jugador
 	public boolean colisionGnomoPersonaje(Gnomos gnomo, Jugador1 jugador) {
 		return gnomo.bordeDer() > jugador.bordeIzq() && gnomo.bordeIzq() < jugador.bordeDer()
 				&& gnomo.bordeAbajo() > jugador.bordeArriba() && gnomo.bordeArriba() < jugador.bordeAbajo();
 	}
 
-	public boolean colisionGnomoTortuga(Gnomos gnomo, Tortuga tortuga) {
-
-		return gnomo.bordeDer() > tortuga.bordeIzq() && gnomo.bordeIzq() < tortuga.bordeDer()
-				&& gnomo.bordeAbajo() > tortuga.bordeArriba() && gnomo.bordeArriba() < tortuga.bordeAbajo();
-
+	public boolean colisionboladefuegotortuga(Tortuga t, Fuego f) {
+		return t.bordeDer() > f.bordeIzq() && t.bordeIzq() < f.bordeDer() && t.bordeAbajo() > f.bordeArriba()
+				&& t.bordeArriba() < f.bordeAbajo();
 	}
 
-	public void destruirGnomos() { // Logica de cuando el gnomo pasaria a ser null
-		for (int i = 0; i < gnomos.length; i++) {
-			for (Tortuga t : tortugas) {
-				if (gnomos[i] != null) {
+	public boolean colisionjugadortortuga(Jugador1 j, Tortuga t) {
+		return t.bordeDer() > j.bordeIzq() && t.bordeIzq() < j.bordeDer() && j.bordeAbajo() > t.bordeArriba()
+				&& j.bordeArriba() < t.bordeAbajo();
+	}
 
-					if ((colisionGnomoPersonaje(gnomos[i], jugador1))) {
-						gnomos[i] = null;
-						gnomoSalv = gnomoSalv + 1;
-					} else {
-						if ((colisionGnomoTortuga(gnomos[i], t)) || (gnomos[i].y > 800)) {
-							gnomos[i] = null;
-							gnomoPer = gnomoPer + 1;
-						}
-					}
+	public boolean colisionGnomoTortuga(Gnomos gnomo, Tortuga tortuga) {
+		return gnomo.bordeDer() > tortuga.bordeIzq() && gnomo.bordeIzq() < tortuga.bordeDer()
+				&& gnomo.bordeAbajo() > tortuga.bordeArriba() && gnomo.bordeArriba() < tortuga.bordeAbajo();
+	}
+
+	public void destruirtortugas() {
+		for (Tortuga t : tortugas) {
+			for (Fuego f : fuegos) {
+				if (colisionboladefuegotortuga(t, f)) {
+					t.murio = true;
+					f.murio = true;
 				}
+			}
+		}
+		for (int i = 0; i < tortugas.size(); i++) {
+			if (tortugas.get(i).murio) {
+				tortugas.remove(i);
+			}
+		}
+		for (int i = 0; i < fuegos.size(); i++) {
+			if (fuegos.get(i).murio) {
+				fuegos.remove(i);
 			}
 		}
 	}
 
+	public void destruirGnomos() {
+		for (Tortuga t : tortugas) {
+			for (Gnomos g : gnomos) {
+				if ((colisionGnomoTortuga(g, t))) {
+					g.murio = true;
+					gnomoPer = gnomoPer + 1;
+				}
+			}
+		}
+		for (Gnomos g : gnomos) {
+			if ((colisionGnomoPersonaje(g, jugador1))) {
+				g.murio = true;
+				gnomoSalv = gnomoSalv + 1;
+			}
+		}
+		for (Gnomos g : gnomos) {
+			if (g.y > 800) {
+				g.murio = true;
+				gnomoPer = gnomoPer + 1;
+			}
+		}
+		for (int i = 0; i < gnomos.size(); i++) {
+			if (gnomos.get(i).murio) {
+				gnomos.remove(i);
+			}
+		}
+	}
+
+	public void muertejugador() {
+		if (jugador1 != null && jugador1.y >= 600) {
+			skillissue = true;
+		}
+		for (Tortuga tortuga : tortugas) {
+			if (colisionjugadortortuga(jugador1, tortuga)) {
+				skillissue = true;
+			}
+		}
+	}
 	/**
 	 * Durante el juego, el método tick() será ejecutado en cada instante y por lo
 	 * tanto es el método más importante de esta clase. Aquí se debe actualizar el
@@ -197,154 +234,132 @@ public class Juego extends InterfaceJuego {
 		// ...
 		// DIBUJO DE LAS CLASES
 		if (ganaste) {
-			this.entorno.cambiarFont("Calibri", 60, Color.yellow);
-			entorno.escribirTexto("Felicidades, ganaste!", 30, 287);
+			this.entorno.cambiarFont("Calibri", 50, Color.yellow);
+			entorno.escribirTexto("Felicidades, ganaste!", 153, entorno.alto() / 2);
 		} else if (perdiste) {
-			this.entorno.cambiarFont("Calibri", 60, Color.red);
-			entorno.escribirTexto("Perdiste, los gnomos murieron", 30, 287);
-		}
-
-		else {
+			this.entorno.cambiarFont("Calibri", 50, Color.red);
+			entorno.escribirTexto("Perdiste, los gnomos murieron", entorno.ancho() - (entorno.ancho() - 100),
+					entorno.alto() / 2);
+		} else if (skillissue) {
+			this.entorno.cambiarFont("Calibri", 50, Color.red);
+			entorno.escribirTexto("Perdiste, tenes skill issue", entorno.ancho() - (entorno.ancho() - 100),
+					entorno.alto() / 2);
+		} else {
 			casa.dibujar(entorno);
-
 			jugador1.dibujar(entorno);
-
+			creartortugas();
+			for (Tortuga t : tortugas) {
+				t.dibujar(entorno);
+				t.moverVer();
+			}
 			// SET DE LOS MOVIMIENTOS Y CREACION
 			jugador1.MoverVer();
-
-		}
-
-		moverGnomos();
-		crearGnomos();
-		creartortugas();
-		destruirGnomos();
-		movertortugas();
-		this.entorno.cambiarFont("Arial", 20, Color.black);
-		entorno.escribirTexto("Gnomos salvados: " + gnomoSalv, 40, 60);
-		entorno.escribirTexto("Gnomos perdidos: " + gnomoPer, 40, 80);
-		for (Tortuga t : tortugas) {
-			t.moverVer();
-		}
-
-		if (gnomoSalv == 10) {
-			for (int i = 0; i < gnomos.length; i++) {
-				gnomos[i] = null;
+			moverGnomos();
+			crearGnomos();
+			creartortugas();
+			movertortugas();
+			destruirGnomos();
+			destruirtortugas();
+			muertejugador();
+			this.entorno.cambiarFont("Calibri", 15, Color.black);
+			entorno.escribirTexto("Gnomos salvados: " + gnomoSalv, 10, 20);
+			entorno.escribirTexto("Gnomos perdidos: " + gnomoPer, 10, 30);
+			for (Tortuga t : tortugas) {
+				t.dibujar(entorno);
 			}
-			
-			jugador1 = null;
-			for (int i = 0; i < islas.length; i++) {
-				islas[i] = null;
+			if (gnomoSalv >= 10) {
+				gnomos.clear();
+				tortugas.clear();
+				jugador1 = null;
+				islas.clear();
+				ganaste = true;
 			}
-			casa = null;
-			ganaste = true;
-		}
-		if (gnomoPer == 10) {
-			for (int i = 0; i < gnomos.length; i++) {
-				gnomos[i] = null;
+			if (gnomoPer >= 10) {
+				gnomos.clear();
+				tortugas.clear();
+				jugador1 = null;
+				islas.clear();
+				perdiste = true;
 			}
-			
-			jugador1 = null;
-			for (int i = 0; i < islas.length; i++) {
-				islas[i] = null;
+			// GENERACION DE ISLAS[]
+			for (Isla e : islas) {
+				e.dibujar(entorno);
 			}
-			casa = null;
-			perdiste = true;
-		}
-		if (jugador1.y >= 600) {
-			perdiste = true;
-		}
-		// GENERACION DE ISLAS[]
-		for (Isla e : islas) {
-			e.dibujar(entorno);
-		}
 
-		for (Isla isla : islas) {
-			if (colisionPiso(jugador1, isla)) {
-				jugador1.tocapiso = true;
-				break;
-
-			} else if (colisionTecho(jugador1, isla)) {
-				jugador1.enSalto = false;
-			} else if (colisionLadoIzq(jugador1, isla)) {
-				jugador1.x = isla.bordeIzq() - jugador1.ancho / 2;
-			} else if (colisionLadoDer(jugador1, isla)) {
-				jugador1.x = isla.bordeDer() + jugador1.ancho / 2;
-			} else {
-				jugador1.tocapiso = false;
+			for (Isla isla : islas) {
+				if (colisionPiso(jugador1, isla)) {
+					jugador1.tocapiso = true;
+					break;
+				} else if (colisionTecho(jugador1, isla)) {
+					jugador1.enSalto = false;
+				} else if (colisionLadoIzq(jugador1, isla)) {
+					jugador1.x = isla.bordeIzq() - jugador1.ancho / 2;
+				} else if (colisionLadoDer(jugador1, isla)) {
+					jugador1.x = isla.bordeDer() + jugador1.ancho / 2;
+				} else {
+					jugador1.tocapiso = false;
+				}
 			}
-		}
-		// GENERACION DE GNOMOS
-		for (Gnomos gnomo : gnomos) {
-			if (gnomo != null) {
+			// GENERACION DE GNOMOS
+			for (Gnomos gnomo : gnomos) {
 				gnomo.dibujar(entorno);
+
+			}
+			// GENERACION DE TORTUGAS
+			for (Tortuga t : tortugas) {
+
+				for (Isla i : islas) {
+					if (tocaisla(t, i)) {
+
+						if (tocaislaBorde(t, i)) {
+							t.tocapiso = true;
+							t.moverInicial(1, entorno);
+
+						} else {
+
+							t.tocapiso = true;
+							t.cambiarDireccion(1, entorno);
+						}
+					}
+				}
+			}
+			// GENERACION DE FUEGO
+			for (Fuego fuego : fuegos) {
+				fuego.actualizar();
+				fuego.dibujar(entorno);
+			}
+			// chequearTeclas(){}
+			if (entorno.estaPresionada(entorno.TECLA_DERECHA)) {
+				jugador1.MoverHor(4, entorno);
+				jugador1.direccion = 1;
+			}
+			if (entorno.estaPresionada(entorno.TECLA_IZQUIERDA)) {
+				jugador1.MoverHor(-4, entorno);
+				jugador1.direccion = -1;
+			}
+			if (entorno.sePresiono(entorno.TECLA_ARRIBA)) {
+				jugador1.saltar();
+			}
+
+			if (entorno.sePresiono(entorno.TECLA_ESCAPE)) {
+				System.out.println("posicion de jugador en X:" + jugador1.x);
+				System.out.println("posicion de jugador en y: " + jugador1.y);
+			}
+			if (entorno.sePresiono('c')) {
+				Fuego fuego = new Fuego(jugador1.x, jugador1.y, 1, jugador1.getDireccion());
+				fuegos.add(fuego);
 			}
 		}
-
-		// GENERACION DE TORTUGAS
-		for (Tortuga t : tortugas) {
-
-			t.dibujar(entorno);
-
-		}
-
-		//for (Isla isla : islas) {
-			//for (Tortuga t : tortugas) {
-				
-
-				//if (tocaisla(t, isla)) {
-
-//					if (tocaislaBorde(t, isla)) {
-//						
-//						t.moverInicial(1, entorno);
-//
-//					} else {
-//
-//						//t.tocapiso = true;
-//						t.cambiarDireccion(1, entorno);
-//					}
-//				}
-//			}
-//		}
-
-		// GENERACION DE FUEGO
-		for (Fuego fuego : fuegos) {
-			fuego.actualizar();
-			fuego.dibujar(entorno);
-		}
-
-		// chequearTeclas(){}
-		if (entorno.estaPresionada(entorno.TECLA_DERECHA)) {
-			jugador1.MoverHor(4, entorno);
-			jugador1.direccion = 1;
-		}
-		if (entorno.estaPresionada(entorno.TECLA_IZQUIERDA)) {
-			jugador1.MoverHor(-4, entorno);
-			jugador1.direccion = -1;
-		}
-		if (entorno.sePresiono(entorno.TECLA_ARRIBA)) {
-			jugador1.saltar();
-		}
-
-		if (entorno.sePresiono(entorno.TECLA_ESCAPE)) {
-			System.out.println("posicion de jugador en X:" + jugador1.x);
-			System.out.println("posicion de jugador en y: " + jugador1.y);
-			
-		}
-
-		if (entorno.sePresiono('c')) {
-			Fuego fuego = new Fuego(jugador1.x, jugador1.y, 1, jugador1.getDireccion());
-			fuegos.add(fuego);
-		}
-
 		// AYUDA PARA LAS COORDENADAS DEL MOUSE Y SET DEL TIEMPO
 		// entorno.escribirTexto(""+entorno.getFrames(),200,20);
-		entorno.escribirTexto("" + (entorno.tiempo() / 1000), 100, 20); // Esto no lo borren, lo estoy usando para
+		this.entorno.cambiarFont("Calibri", 15, Color.black);
+		entorno.escribirTexto("" + (entorno.tiempo() / 1000), 200, 20); // Esto no lo borren, lo estoy usando para
 																		// guiarme por la pantalla. Att: Me.
-		entorno.escribirTexto("mouse coord x: " + entorno.mouseX(), 500, 200); // Tambien aprobecho para decir que si
+		entorno.escribirTexto("mouse coord x: " + entorno.mouseX(), 680, 20); // Tambien aprobecho para decir que si
 																				// encuentran algo sin mucho sentido o
 																				// que no esta terminado borrenlo, hay
 																				// cosas que hago
-		entorno.escribirTexto("mouse coord y:" + entorno.mouseY(), 500, 300); // y me olvido de borrar (la chucha de
+		entorno.escribirTexto("mouse coord y: " + entorno.mouseY(), 680, 30); // y me olvido de borrar (la chucha de
 																				// Test no la borren xd)
 	}
 
@@ -352,5 +367,4 @@ public class Juego extends InterfaceJuego {
 	public static void main(String[] args) {
 		Juego juego = new Juego();
 	}
-
 }

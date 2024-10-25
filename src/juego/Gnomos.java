@@ -5,6 +5,8 @@ import entorno.Entorno;
 import java.util.Random;
 
 public class Gnomos {
+	private static final int MIN_VELOCIDAD = 0;
+	private static final int MAX_VELOCIDAD = 1;
 	double x;
 	double y;
 	Image imagen;
@@ -18,11 +20,12 @@ public class Gnomos {
 	double velocidad;
 	double vacio;
 	Random random= new Random();
+	boolean murio;
 	
 	
 	public Gnomos(double x, double y, double escala, double velocidad) {
 		Random rand= new Random();
-		direccion = rand.nextInt();
+		
 		this.x = x;
 		this.y = y;
 		this.escala = escala;
@@ -33,6 +36,15 @@ public class Gnomos {
 		gravedad = 4;
 		tocapiso = false;
 		cambioDireccion= false;
+		murio=false;
+		
+        
+        // Generar una dirección aleatoria entre -1 y 1
+        direccion = rand.nextBoolean() ? 1 : -1;
+        
+        // Generar velocidad aleatoria entre los valores mínimo y máximo
+        velocidad = MIN_VELOCIDAD + (MAX_VELOCIDAD - MIN_VELOCIDAD) * rand.nextDouble();
+	
 		
 	}
 	public double bordeArriba() {
