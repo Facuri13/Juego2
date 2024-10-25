@@ -13,15 +13,16 @@ public class Gnomos {
 	double escala;
 	boolean tocapiso;
 	int gravedad;
-	boolean sefuedeisla;
+	boolean cambioDireccion;
 	int direccion;
 	double velocidad;
+	double vacio;
 	Random random= new Random();
 	
 	
 	public Gnomos(double x, double y, double escala, double velocidad) {
 		Random rand= new Random();
-		direccion = rand.nextInt(2);
+		direccion = rand.nextInt();
 		this.x = x;
 		this.y = y;
 		this.escala = escala;
@@ -31,7 +32,8 @@ public class Gnomos {
 		alto = imagen.getHeight(null)*escala;
 		gravedad = 4;
 		tocapiso = false;
-		sefuedeisla= false;
+		cambioDireccion= false;
+		
 	}
 	public double bordeArriba() {
 		return y-(alto/2);
@@ -53,19 +55,31 @@ public class Gnomos {
 			e.dibujarImagen(this.imagen, this.x, this.y, 0, this.escala);
 			
 	}
-	public void moverHorizontal(double horizontal, Entorno e) {
-		if(direccion%2==0) {
-			x=x+horizontal*velocidad*1.2;		
-		}
-		if (direccion%2!=0) {
-			x=x+horizontal*velocidad*-1.2;
-		}
-	}
-		
-	
-	public void moverVer() {
-		if (!tocapiso) {
-			y = y + gravedad;
-		}
-	}
+	 public void moverHorizontal() { // Movimiento horizontal en base a la direccion (random)
+	        if (direccion == 0) {
+	            x = x + velocidad * 1.2;
+	        } else {
+	            x = x - velocidad * 1.2;
+	        }
+	    }
+
+	    public void moverVer() { 
+	        if (!tocapiso) {
+	            y = y + gravedad; //Movimiento vertical 
+	            if (cambioDireccion = false) {
+	            	 Random rand = new Random();
+	 	            direccion = rand.nextInt(2);  //Cambio de direccion SOLO CUANDO NO HAYA CAMBIADO ANTES
+	 	            cambioDireccion = true; 
+	            }
+	           
+	        }
+	        }
+
+	    public void actualizarGnomos() {  //Cuando el gnomo hijo de mil puta esta en el aire Y NO CAMBIO SU DIRECCION TODAVIA
+	        if (tocapiso && !cambioDireccion) {
+	            Random rand = new Random();
+	            direccion = rand.nextInt(2);   //Cambio de direccion OTRA VEZ 
+	            cambioDireccion = true;  
+	        }
+	    }
 }

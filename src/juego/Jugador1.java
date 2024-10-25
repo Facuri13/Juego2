@@ -90,15 +90,5 @@ public class Jugador1 {
 			velocidadSalto = 11;
 		}
 	}
-
-	public void vueltaInicio(Jugador1 jugador1,Entorno e) {
-		if(jugador1.y>=600) {
-			x=400;
-			y=58;
-			jugador1.x=x;
-			jugador1.y=y;
-			
-		}
-	}
 }
 
